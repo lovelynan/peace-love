@@ -173,7 +173,7 @@ public class GUI2 extends JFrame implements ActionListener {
                             System.out.println("please enter valid user id(1-30)");
                             available = false;
                         } else if (start.equals("") || !start.contains(":")
-                            || (!start.equals("") && (start.split(":")[0].matches("\\d+") || !start.split(":")[1].matches("\\d+")
+                            || (!start.equals("") && (!start.split(":")[0].matches("\\d+") || !start.split(":")[1].matches("\\d+")
                             || (Integer.parseInt(start.split(":")[0]+startTime.split(":")[1]) < 900 || Integer.parseInt(start.split(":")[0]+startTime.split(":")[1]) > 2230)))) {
                             JOptionPane.showMessageDialog(null,"Please enter start time: (9:00-22:30 format(HH:mm))");
                             System.out.println("Please enter start time: (9:00-22:30 format(HH:mm))");
