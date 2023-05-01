@@ -10,7 +10,8 @@ import SmartOffice.Booking;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.grpc.stub.StreamObserver;
-import java.util.Date;
+
+import java.time.format.DateTimeFormatter;
 import javax.jmdns.JmDNS;
 import javax.jmdns.ServiceInfo;
 import java.io.IOException;
@@ -33,8 +34,8 @@ public class Service2 extends Service2Grpc.Service2ImplBase {
         rooms.put("8", Room.newBuilder().setRoomId("8").setName("Room 8").setAvailable(false).build());
         rooms.put("9", Room.newBuilder().setRoomId("9").setName("Room 9").setAvailable(true).build());
         rooms.put("10", Room.newBuilder().setRoomId("10").setName("Room 10").setAvailable(false).build());
-        Booking booking1 = new Booking("1", "1", "9", "10");
 
+        Booking booking1 = new Booking("1", "1", "9", "10");
         bookings.add(booking1);
     }
 
@@ -45,7 +46,7 @@ public class Service2 extends Service2Grpc.Service2ImplBase {
         System.out.println("Get Available Rooms.");
         RoomList.Builder response = RoomList.newBuilder();
         if (floor.equals("") || !floor.matches("\\d+") || ((Integer.parseInt(floor) < 0 || Integer.parseInt(floor) > 3))) {
-            System.out.println("Invalid floor");
+            System.out.println("please enter valid floor:(1-3)");
         } else {
             for (Room room : rooms.values()) {
                 if (room.getAvailable()) {
@@ -66,52 +67,64 @@ public class Service2 extends Service2Grpc.Service2ImplBase {
     public void bookRoom(BookRequest request, StreamObserver<BookResponse> responseObserver) {
         String roomId = request.getRoomId();
         String userId = request.getUserId();
-        String startTime = request.getStartTime();
-        String endTime = request.getEndTime();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
+        String start = request.getStartTime();
+        String startTime = String.format(start, formatter);//format
+        String end = request.getEndTime();
+        String endTime = String.format(end, formatter);//format
 
         // Check if room is available during the requested time
         boolean available = true;
-        if(roomId.equals("")||!roomId.matches("\\d+")||(Integer.parseInt(roomId) < 1||Integer.parseInt(roomId)>10)) {
-            available = false;
-            System.out.println("Invalid room id");
-        }
-        else if (userId.equals("") || !userId.matches("\\d+") || (Integer.parseInt(userId) < 0 || Integer.parseInt(userId) > 10)) {
-            available = false;
-            System.out.println("Invalid user id.");
-            //responseObserver.onNext(response);
-        } else if (startTime.equals("") || !startTime.matches("\\d+") || (Integer.parseInt(startTime) < 9 || Integer.parseInt(startTime) > 22)) {
-            available = false;
-            //BookResponse response = BookResponse.newBuilder().setSuccess(false).build();
-            System.out.println("Please enter start time: (9-22)");
-            //responseObserver.onNext(response);
-        } else if (endTime.equals("") || !endTime.matches("\\d+") || (Integer.parseInt(endTime) < 9 || Integer.parseInt(endTime) > 22)) {
-            available = false;
-            System.out.println("Please enter start time: (9-22)");
-        } else if (Integer.parseInt(startTime) >= Integer.parseInt(endTime)) {
-            available = false;
-            System.out.println("Start time should be less than end time.");
-        }else {
-
-        }
-        //check the booking list
-        for(int i = 0;i<bookings.size();i++) {
-            if (roomId.equals(bookings.get(i).getRoomId()) && (Integer.parseInt(startTime) < Integer.parseInt(bookings.get(i).getEndTime()) && Integer.parseInt(endTime) > Integer.parseInt(bookings.get(i).getStartTime()))) {
-                System.out.println("Has been booked");
+        do {
+            if (roomId.equals("") || !roomId.matches("\\d+") || (Integer.parseInt(roomId) < 1 || Integer.parseInt(roomId) > 10)) {
+                System.out.println("please enter valid room id:(1-10)");
                 available = false;
-            }else {
+            } else if (userId.equals("") || !userId.matches("\\d+") || (Integer.parseInt(userId) < 1 || Integer.parseInt(userId) > 30)) {
+                System.out.println("please enter valid user id:(1-30)");
+                available = false;
+            } else if (start.equals("") || !start.contains(":")
+                || (!start.equals("") && (!startTime.split(":")[0].matches("\\d+") || !startTime.split(":")[1].matches("\\d+")
+                || (Integer.parseInt(startTime.split(":")[0]) < 9 || Integer.parseInt(startTime.split(":")[0]) > 22)))) {
+                System.out.println("Please enter valid start time: (9-22 format(HH:mm))");
+                available = false;
+            } else if (end.equals("") || !end.contains(":")
+                ||(end.equals("") && (!endTime.split(":")[0].matches("\\d+") || !endTime.split(":")[1].matches("\\d+")
+                || (Integer.parseInt(endTime.split(":")[0]) < 9 || Integer.parseInt(endTime.split(":")[0]) > 22)))) {
+                System.out.println("Please enter valid start time: (9-22 format:(HH:mm))");
+                available = false;
+            } else if (Integer.parseInt(startTime.split(":")[0]) > Integer.parseInt(endTime.split(":")[0])
+                || (Integer.parseInt(startTime.split(":")[0]) == Integer.parseInt(endTime.split(":")[0])) && (Integer.parseInt(startTime.split(":")[1]) >= (Integer.parseInt(endTime.split(":")[1])))) {
+                System.out.println("Start time should be less than end time.");
+                available = false;
+            } else {
+                //check the booking list, if exists
+                for(int i = 0;i<bookings.size();i++) {
+                    if (roomId.equals(bookings.get(i).getRoomId())
+                            && (Integer.parseInt(startTime.split(":")[0]) < Integer.parseInt(bookings.get(i).getEndTime().split(":")[0])
+                            || (Integer.parseInt(startTime.split(":")[0]) == Integer.parseInt(bookings.get(i).getEndTime().split(":")[0])
+                            && Integer.parseInt(startTime.split(":")[1]) < Integer.parseInt(bookings.get(i).getEndTime().split(":")[1]))
+                            && (Integer.parseInt(endTime.split(":")[0]) > Integer.parseInt(bookings.get(i).getStartTime().split(":")[0]))
+                            || (Integer.parseInt(endTime.split(":")[0]) == Integer.parseInt(bookings.get(i).getStartTime().split(":")[0])
+                            && Integer.parseInt(endTime.split(":")[1]) < Integer.parseInt(bookings.get(i).getStartTime().split(":")[1])))) {
+                        System.out.println("Has been booked");
+                        available = false;
+                        break;
+                    }
+                }
+                if (available){
+                    // if doesn't exists, book the room
+                    Booking newBooking = new Booking(roomId, userId, startTime, endTime);
+                    bookings.add(newBooking);
+                    //print book list at server side
+                    for(Booking booking:bookings){
+                        System.out.println("room id: " + roomId + "\tstart time: "+ startTime + "\tend time: "+ endTime + " \tuser id " + userId);
+                    }
+                }
+                break;
             }
-        }
+        }while (available);
 
-        // Cancel booking
-        if (available) {
-
-            // Book the room
-            Booking newBooking = new Booking(roomId, userId, startTime, endTime);
-            bookings.add(newBooking);
-            for(Booking booking:bookings){
-                System.out.println("room id: " + roomId + "\tstart time: "+ startTime + "\tend time: "+ endTime + " \tuser id " + userId);
-            }
-        }
+        // set response message:success
         BookResponse response = BookResponse.newBuilder().setSuccess(available).build();
         responseObserver.onNext(response);
         responseObserver.onCompleted();

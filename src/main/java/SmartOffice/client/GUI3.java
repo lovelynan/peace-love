@@ -5,7 +5,6 @@ Filename:GUI3.java
 */
 
 package SmartOffice.client;
-import SmartOffice.GetRequest;
 import SmartOffice.service3.*;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
@@ -80,12 +79,7 @@ public class GUI3 extends JFrame implements ActionListener {
             resolvedIP = info.getHostAddress();
             System.out.println("IP Resolved - " + resolvedIP + ":" + port);
 
-            String path = info.getNiceTextString().split("=")[1];
 
-            String url =  "http://localhost:"+port+"/"+path;
-            System.out.println(" --- sending request to " + url);
-
-            GetRequest.request(url);
         }
     }//serviceResolved
 
