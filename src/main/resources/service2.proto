@@ -1,0 +1,53 @@
+syntax = "proto3";
+package service2;
+
+//options for rpc
+option java_multiple_files = true;
+option java_package = "SmartOffice.service2";
+option java_outer_classname = "Service2Impl";
+
+//definition for service
+service Service2 {
+  // Get list of available rooms
+  rpc GetAvailableRooms (RoomRequest) returns (RoomList) {}
+
+  // Server streaming RPC to book a specific room
+  rpc BookRoom (BookRequest) returns (stream BookResponse) {}
+
+  // Bidirectional streaming RPC to cancel booking of a specific room
+  rpc CancelRoom (stream CancelRequest) returns (stream CancelResponse) {}
+}
+
+message RoomRequest {
+  string floor = 1;
+}
+
+message Room {
+  string room_id = 1;
+  string name = 2;
+  bool available = 3;
+}
+
+message RoomList {
+  repeated Room rooms = 1;
+}
+
+message BookRequest {
+  string room_id = 1;
+  string user_id = 2;
+  string start_time = 3;
+  string end_time = 4;
+}
+
+message BookResponse {
+  bool success = 1;
+}
+
+message CancelRequest {
+  string room_id = 1;
+  string user_id = 2;
+}
+
+message CancelResponse {
+  bool success = 1;
+}

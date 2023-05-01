@@ -1,0 +1,44 @@
+syntax = "proto3";
+package service1;
+
+//options for rpc
+option java_multiple_files = true;
+option java_package = "SmartOffice.service1";
+option java_outer_classname = "Service1Impl";
+
+//definition for service
+service Service1 {
+  // Simple RPC to turn on/off the lights for a room
+  rpc ToggleOn(TurnOnRequest) returns (TurnOnResponse) {}
+  rpc ToggleOff( TurnOffRequest) returns (TurnOffResponse) {}
+  // Client Streaming RPC to set brightness for a room
+  rpc SerBrightness(stream SetBrightnessRequest) returns (SetBrightnessResponse) {}
+
+}
+
+//define the messages
+message TurnOnRequest {
+  string room_id = 1;
+  bool turn_on = 2;
+}
+
+message TurnOnResponse {
+  bool success = 1;
+}
+
+message TurnOffRequest{
+  string room_id = 1;
+  bool turn_off = 2;
+}
+
+message TurnOffResponse{
+  bool success = 1;
+}
+
+message SetBrightnessRequest{
+  string room_id = 1;
+  string set_brightness = 2;
+}
+message SetBrightnessResponse{
+  bool success = 1;
+}

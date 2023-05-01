@@ -1,0 +1,42 @@
+syntax = "proto3";
+package service3;
+
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+
+//options for rpc
+option java_multiple_files = true;
+option java_package = "SmartOffice.service3";
+option java_outer_classname = "Service3Impl";
+
+//definition for service
+service Service3 {
+  rpc checkIn (CheckInRequest) returns (CheckInResponse) {}
+  rpc checkOut (CheckOutRequest) returns (CheckOutResponse) {}
+}
+
+
+//define messages
+message CheckInRequest {
+  string employee_id = 1;
+}
+
+message CheckInResponse {
+  string message = 1;
+  string check_in_time = 2;
+}
+
+message CheckOutRequest {
+  string employee_id = 1;
+}
+
+message CheckOutResponse {
+  string message = 1;
+  string check_out_time = 2;
+}
+
+
+
+
+
+
