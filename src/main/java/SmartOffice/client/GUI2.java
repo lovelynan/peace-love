@@ -174,15 +174,15 @@ public class GUI2 extends JFrame implements ActionListener {
                             available = false;
                         } else if (start.equals("") || !start.contains(":")
                             || (!start.equals("") && (start.split(":")[0].matches("\\d+") || !start.split(":")[1].matches("\\d+")
-                            || (Integer.parseInt(start.split(":")[0]) < 9 || Integer.parseInt(start.split(":")[0]) > 22)))) {
-                            JOptionPane.showMessageDialog(null,"Please enter start time: (9-22 format(HH:mm))");
-                            System.out.println("Please enter start time: (9-22 format(HH:mm))");
+                            || (Integer.parseInt(start.split(":")[0]+startTime.split(":")[1]) < 900 || Integer.parseInt(start.split(":")[0]+startTime.split(":")[1]) > 2230)))) {
+                            JOptionPane.showMessageDialog(null,"Please enter start time: (9:00-22:30 format(HH:mm))");
+                            System.out.println("Please enter start time: (9:00-22:30 format(HH:mm))");
                             available = false;
                         } else if (end.equals("") || !end.contains(":")
                             || (!end.equals("") && (!endTime.split(":")[0].matches("\\d+") || !endTime.split(":")[1].matches("\\d+")
-                            || (Integer.parseInt(endTime.split(":")[0]) < 9 || Integer.parseInt(endTime.split(":")[0]) > 22)))) {
-                            JOptionPane.showMessageDialog(null,"Please enter start time: (9-22 format(HH:mm))");
-                            System.out.println("Please enter start time: (9-22 format(HH:mm))");
+                            || (Integer.parseInt(endTime.split(":")[0]+endTime.split(":")[1]) < 900 || Integer.parseInt(endTime.split(":")[0]+endTime.split(":")[1]) > 2230)))) {
+                            JOptionPane.showMessageDialog(null,"Please enter start time: (9:00-22:30 format(HH:mm))");
+                            System.out.println("Please enter start time: (9:00-22:30 format(HH:mm))");
                             available = false;
                         } else if (Integer.parseInt(start.split(":")[0]) > Integer.parseInt(endTime.split(":")[0])
                             || (Integer.parseInt(start.split(":")[0]) == Integer.parseInt(endTime.split(":")[0])) && (Integer.parseInt(start.split(":")[1]) >= (Integer.parseInt(endTime.split(":")[1])))) {
