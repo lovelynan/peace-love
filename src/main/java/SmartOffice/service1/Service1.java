@@ -5,19 +5,22 @@ Filename:Service1.java
 */
 
 package SmartOffice.service1;
+import SmartOffice.HTTPServer;
+import com.sun.net.httpserver.HttpExchange;
+import com.sun.net.httpserver.HttpHandler;
+import com.sun.net.httpserver.HttpServer;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
+import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 
 import javax.jmdns.JmDNS;
 import javax.jmdns.ServiceInfo;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.net.InetAddress;
-import java.rmi.Remote;
+import java.net.InetSocketAddress;
 import java.rmi.RemoteException;
-import java.rmi.registry.LocateRegistry;
-import java.rmi.registry.Registry;
-import java.rmi.server.UnicastRemoteObject;
 
 
 public class Service1 extends Service1Grpc.Service1ImplBase {
@@ -26,11 +29,10 @@ public class Service1 extends Service1Grpc.Service1ImplBase {
      */
     static int port = 50055;
 
-    public static void main(String[] args) throws RemoteException {
+    public static void main(String[] args) throws IOException {
         Service1 service1 = new Service1();
-
-
         Server server;
+
         try {
             server = ServerBuilder.forPort(port).addService(service1).build().start();
             System.out.println("Service1 started....");
@@ -42,12 +44,22 @@ public class Service1 extends Service1Grpc.Service1ImplBase {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-
-
+        HttpServer server1 = HttpServer.create(new InetSocketAddress(50055), 0);
+        server1.createContext("/index.html", new MyHandler());
+        server1.setExecutor(null); // creates a default executor
+        server1.start();
     }
 
-
-
+    static class MyHandler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange t) throws IOException {
+            String response = "status code is 200";
+            t.sendResponseHeaders(200, response.length());
+            OutputStream os = t.getResponseBody();
+            os.write(response.getBytes());
+            os.close();
+        }
+    }
 
     public static void testJMDNS() {
         try {
@@ -69,9 +81,11 @@ public class Service1 extends Service1Grpc.Service1ImplBase {
         }
     }
 
+
+
     //Implement methods
     @Override
-    public void toggleOn(TurnOnRequest request, StreamObserver<TurnOnResponse> responseObserver) {
+    public void toggleOn(TurnOnRequest request, StreamObserver<TurnOnResponse> responseObserver){
         // Turn on lights for specified room ID
         String roomID = request.getRoomId();
         String message = "Turned on light for room " + roomID;
@@ -129,7 +143,7 @@ public class Service1 extends Service1Grpc.Service1ImplBase {
                     responseObserver.onNext(response);
                     responseObserver.onCompleted();
                 }
-                else if(brightness.equals("")|| !brightness.matches("\\d")||(Integer.parseInt(brightness)<0 || Integer.parseInt(brightness)>100)){
+                else if(brightness.equals("")||!brightness.matches("\\d+")||(Integer.parseInt(brightness)<0 || Integer.parseInt(brightness)>100)){
                     System.out.println(message);
                     SetBrightnessResponse response = SetBrightnessResponse.newBuilder().setSuccess(false).build();
                     responseObserver.onNext(response);
