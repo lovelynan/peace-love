@@ -12,7 +12,7 @@ public class Booking {
         private String endTime;
         private String roomId;
 
-
+        public Booking(){}
         public Booking(String roomId,String userId, String startTime, String endTime) {
             this.userId = userId;
             this.startTime = startTime;

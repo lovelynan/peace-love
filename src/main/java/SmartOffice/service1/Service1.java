@@ -13,6 +13,11 @@ import javax.jmdns.JmDNS;
 import javax.jmdns.ServiceInfo;
 import java.io.IOException;
 import java.net.InetAddress;
+import java.rmi.Remote;
+import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
+import java.rmi.server.UnicastRemoteObject;
 
 
 public class Service1 extends Service1Grpc.Service1ImplBase {
@@ -21,7 +26,7 @@ public class Service1 extends Service1Grpc.Service1ImplBase {
      */
     static int port = 50055;
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws RemoteException {
         Service1 service1 = new Service1();
 
 
@@ -37,7 +42,12 @@ public class Service1 extends Service1Grpc.Service1ImplBase {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+
+
     }
+
+
+
 
     public static void testJMDNS() {
         try {

@@ -197,6 +197,7 @@ public class GUI1 extends JFrame implements ActionListener {
         testClientJMDNS();
         new SmartOffice.client.GUI1();
 
+
     }//main
 
 
@@ -216,5 +217,7 @@ public class GUI1 extends JFrame implements ActionListener {
         }
 
     }
+
+
 }
 

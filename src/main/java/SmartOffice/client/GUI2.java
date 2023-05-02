@@ -20,7 +20,6 @@ import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.net.InetAddress;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 public class GUI2 extends JFrame implements ActionListener {
@@ -129,11 +128,9 @@ public class GUI2 extends JFrame implements ActionListener {
         String floor = floorField.getText();
         String roomId = roomIdField.getText();
         String userId = userIdField.getText();
-        String start = start_timeField.getText();
-        String end = end_timeField.getText();
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
-        String startTime = String.format(start, formatter);//format
-        String endTime = String.format(end, formatter);//format
+        String startTime = start_timeField.getText();
+        String endTime = end_timeField.getText();
+        String regx = "^(?:[9]|1\\d|2[0-2]):[0-5]\\d$";
 
 
         ManagedChannel channel = ManagedChannelBuilder.forAddress("localhost", port).usePlaintext().build();
@@ -172,20 +169,18 @@ public class GUI2 extends JFrame implements ActionListener {
                             JOptionPane.showMessageDialog(null,"please enter valid user id:(1-30)");
                             System.out.println("please enter valid user id(1-30)");
                             available = false;
-                        } else if (start.equals("") || !start.contains(":")
-                            || (!start.equals("") && (!start.split(":")[0].matches("\\d+") || !start.split(":")[1].matches("\\d+")
-                            || (Integer.parseInt(start.split(":")[0]+startTime.split(":")[1]) < 900 || Integer.parseInt(start.split(":")[0]+startTime.split(":")[1]) > 2230)))) {
-                            JOptionPane.showMessageDialog(null,"Please enter start time: (9:00-22:30 format(HH:mm))");
-                            System.out.println("Please enter start time: (9:00-22:30 format(HH:mm))");
+                        } else if (startTime.equals("") || !startTime.matches(regx)) {
+                            JOptionPane.showMessageDialog(null,"Please enter start time(9:00-21:59):");
+                            System.out.println("Please enter start time(9:00-21:59):");
                             available = false;
-                        } else if (end.equals("") || !end.contains(":")
-                            || (!end.equals("") && (!endTime.split(":")[0].matches("\\d+") || !endTime.split(":")[1].matches("\\d+")
-                            || (Integer.parseInt(endTime.split(":")[0]+endTime.split(":")[1]) < 900 || Integer.parseInt(endTime.split(":")[0]+endTime.split(":")[1]) > 2230)))) {
-                            JOptionPane.showMessageDialog(null,"Please enter start time: (9:00-22:30 format(HH:mm))");
-                            System.out.println("Please enter start time: (9:00-22:30 format(HH:mm))");
+                        } else if (endTime.equals("") || !endTime.matches(regx)) {
+                            JOptionPane.showMessageDialog(null,"Please enter end time(9:00-21:59):");
+                            System.out.println("Please enter end time(9:00-21:59))");
                             available = false;
-                        } else if (Integer.parseInt(start.split(":")[0]) > Integer.parseInt(endTime.split(":")[0])
-                            || (Integer.parseInt(start.split(":")[0]) == Integer.parseInt(endTime.split(":")[0])) && (Integer.parseInt(start.split(":")[1]) >= (Integer.parseInt(endTime.split(":")[1])))) {
+                        } else if (Integer.parseInt(startTime.split(":")[0]) > Integer.parseInt(endTime.split(":")[0])
+                            || (Integer.parseInt(startTime.split(":")[0])==Integer.parseInt(endTime.split(":")[0])
+                            && Integer.parseInt(startTime.split(":")[1]) >= Integer.parseInt(endTime.split(":")[1])))
+                        {
                             JOptionPane.showMessageDialog(null,"Start time should be less than end time.");
                             System.out.println("Start time should be less than end time.");
                             available = false;
@@ -193,32 +188,37 @@ public class GUI2 extends JFrame implements ActionListener {
                             //check the booking list, if exists
                             Service2 service2 = new Service2();
                             for(int i = 0;i<service2.bookings.size();i++) {
-                                if (roomId.equals(service2.bookings.get(i).getRoomId())//1)the same room id  &&
-                                    && ((Integer.parseInt(start.split(":")[0])) < Integer.parseInt(service2.bookings.get(i).getEndTime().split(":")[0])//2.1) start hour < i's end hour  ||
-                                    || (Integer.parseInt(start.split(":")[0]) == Integer.parseInt(service2.bookings.get(i).getEndTime().split(":")[0]) //2.2)|| the same start hour   &&
-                                    && Integer.parseInt(start.split(":")[1]) < Integer.parseInt(service2.bookings.get(i).getEndTime().split(":")[1])))//but start minute < i's end minute   &&
-                                    && (Integer.parseInt(endTime.split(":")[0]) > Integer.parseInt(service2.bookings.get(i).getStartTime().split(":")[0])//3.1)end hour > i's start hour ||
-                                    || (Integer.parseInt(endTime.split(":")[0]) == Integer.parseInt(service2.bookings.get(i).getStartTime().split(":")[0])//3.2) or the same end hour  &&
-                                    && Integer.parseInt(endTime.split(":")[1]) < Integer.parseInt(service2.bookings.get(i).getStartTime().split(":")[1])))) {//but end minute < i's start minute
+                                if ((roomId.equals(service2.bookings.get(i).getRoomId())
+                                    && Integer.parseInt(startTime.split(":")[0]+startTime.split(":")[1]) < Integer.parseInt(service2.bookings.get(i).getEndTime().split(":")[0]+service2.bookings.get(i).getEndTime().split(":")[1])
+                                    && Integer.parseInt(endTime.split(":")[0]+endTime.split(":")[1]) > Integer.parseInt(service2.bookings.get(i).getStartTime().split(":")[0]+service2.bookings.get(i).getStartTime().split(":")[1]))
+                                    || (roomId.equals(service2.bookings.get(i).getRoomId())&&userId.equals(service2.bookings.get(i).getUserId())
+                                    &&startTime.equals(service2.bookings.get(i).getStartTime())&&endTime.equals(service2.bookings.get(i).getEndTime()))){
                                     JOptionPane.showMessageDialog(null,"Has been booked");
                                     System.out.println("Has been booked");
                                     available = false;
-                                    break;
                                 }
-                            }
+                            }//for
+
                             if (available){
+                                Booking newBooking = new Booking(roomId, userId, startTime, endTime);
+                                service2.bookings.add(newBooking);
+                                JOptionPane.showMessageDialog(null,"Book room " + roomId + " from "+ startTime + " to end time "+ endTime + "  for user " + userId + " successfully");
                                 //print book list at client side
-                                for(Booking booking:service2.bookings){
-                                    System.out.println("room id: " + roomId + "\tstart time: "+ startTime + "\tend time: "+ endTime + " \tuser id " + userId);
+                                for(int i=0;i<service2.bookings.size();i++){
+                                    System.out.println("room " + service2.bookings.get(i).getRoomId() + " from "+ service2.bookings.get(i).getStartTime() + " to end time "+ service2.bookings.get(i).getEndTime() + " is used by user " + service2.bookings.get(i).getUserId());
+                                    if (roomId.equals(service2.bookings.get(i).getRoomId())&&userId.equals(service2.bookings.get(i).getUserId())
+                                        &&startTime.equals(service2.bookings.get(i).getStartTime())&&endTime.equals(service2.bookings.get(i).getEndTime())){
+                                        System.out.println("new booking has been added into list");
+                                        break;
+                                    }
                                 }
                             }
-                            break;
+                            available=false;
                         }
                     }while (available);
+
                     //get response message in the reply field
-
-                        replyField.setText(String.valueOf(response.getSuccess()));
-
+                    replyField.setText(String.valueOf(response.getSuccess()));
 
                 }
 
@@ -233,8 +233,7 @@ public class GUI2 extends JFrame implements ActionListener {
                 }
             };
             //send message
-            BookRequest request = BookRequest.newBuilder().setRoomId(roomId).setUserId(userId).setStartTime(start).setEndTime(end).build();
-
+            BookRequest request = BookRequest.newBuilder().setRoomId(roomId).setUserId(userId).setStartTime(startTime).setEndTime(endTime).build();
             stub.bookRoom(request,bookResponseObserver);
 
 
@@ -257,7 +256,6 @@ public class GUI2 extends JFrame implements ActionListener {
         } else if (e.getSource() == unbookBtn){
             // Add code to send request to server...
             System.out.println("------Cancel room start---------");
-            JOptionPane.showMessageDialog(null,"Please enter room id and user id");
             StreamObserver<CancelResponse> responseObserver = new StreamObserver<CancelResponse>() {
 
                 @Override
@@ -266,21 +264,33 @@ public class GUI2 extends JFrame implements ActionListener {
                     // Validate brightness input
                     Service2 service2 = new Service2();
                     if (roomId.equals("") || !roomId.matches("\\d+") || (Integer.parseInt(roomId) < 1 || Integer.parseInt(roomId) > 10)) {
-                        JOptionPane.showMessageDialog(panel, "Please enter a valid room id (1-10).");
+                        JOptionPane.showMessageDialog(panel, "Please enter room id & user id.\nPlease enter a valid room id (1-10).");
                         replyField.setText(String.valueOf(response.getSuccess()));
-                    } else if (userId.equals("") || !userId.matches("\\d+") || (Integer.parseInt(userId) < 0 || Integer.parseInt(userId) > 10)) {
-                        JOptionPane.showMessageDialog(panel, "Please enter valid user id (0-10).");
+                    } else if (userId.equals("") || !userId.matches("\\d+") || (Integer.parseInt(userId) < 1 || Integer.parseInt(userId) > 30)) {
+                        JOptionPane.showMessageDialog(panel, "Please enter room id& user id.\n Please enter valid user id (1-30).");
                         replyField.setText(String.valueOf(response.getSuccess()));
                     }else if (!service2.bookings.isEmpty()) {
+                        int size1 = service2.bookings.size();
+                        System.out.println(size1);
                         for (int i = 0; i < service2.bookings.size(); i++) {
                             if (roomId.equals(service2.bookings.get(i).getRoomId()) && userId.equals(service2.bookings.get(i).getUserId())) {
                                 service2.bookings.remove(i);
-                                JOptionPane.showMessageDialog(panel,"Cancel room " + roomId + "for user " + userId + "successfully.");
-                                replyField.setText(String.valueOf(response.getSuccess()));
                             }
                         }
-                    }else {
+                        int size2 = service2.bookings.size();
+                        System.out.println(size2);
+                        if (size1-size2==1) {
                             JOptionPane.showMessageDialog(panel, "Cancel room " + roomId + " for user " + userId + " successfully.");
+                            System.out.println("Cancel booking successfully");
+                            replyField.setText(String.valueOf(response.getSuccess()));
+                        }else if(size1-size2==0){
+                            JOptionPane.showMessageDialog(panel, "you don't have booked rooms");
+                            System.out.println("you don't have booked rooms");
+                            replyField.setText(String.valueOf(response.getSuccess()));
+                        }else {}
+                    }else {
+                            JOptionPane.showMessageDialog(panel, "no booked rooms");
+                        System.out.println("no booked rooms");
                             replyField.setText(String.valueOf(response.getSuccess()));
                     }
                 }
